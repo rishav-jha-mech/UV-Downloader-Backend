@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rsponsive Testing Page for UV Downloader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>@import url('style.css');</style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+</head>
+<body>
+<!-- <h1 class="text-center"><button class="btn btn-lg btn-primary" id="bloby" onclick="download()">Download</button></h1>  -->
+<form class="d-flex py-5 px-5" style="background: violet;" onsubmit="return false">
+    <input class="form-control mx-2" type="url" placeholder="Enter Url" name="uri" id="theUrl">
+    <button class="btn btn-primary btn-lg px-5 mx-2" type="submit" onclick="PostTheData()">Post</button>
+</form>
+<div id="root" class="d-flex justify-content-center align-items-center">
+    <div class="my-card">
+        <div class="img-container d-flex justify-content-center align-items-center">
+            <img class="container-fluid" id="thumb">
+        </div>
+        <div class="info-container">
+            <h4 class="my-2" id="title"></h4>
+            <h6 class="my-2" style="color: #ff156d;font-weight: 700;">Duration : <span id="duration" style="color: #444;">Fetching ...</span></h6>
+            </h6>
+            <ul class="list-group my-3" id="requested-link">
+                <h4 class="mx-2 my-4">Best Format For You</h4>
+                <p>Fetching ...</p>
+            </ul>
+            <ul class="list-group my-3" id="comp-video">
+                <h4 class="mx-2 my-3">Video with Audio Embeded</h4>
+                <p>Fetching ...</p>
+            </ul>
+            <ul class="list-group my-3" id="video-only">
+                <h4 class="mx-2 my-3">Video Only</h4>
+                <p>Fetching ...</p>
+            </ul>
+            <ul class="list-group my-3" id="audio-only">
+                <h4 class="mx-2 my-3">Audio Only</h4>
+                <p>Fetching ...</p>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+</body>
+
+<!-- AXIOS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.23.0/axios.js" integrity="sha512-nZmAl1ClAQ0kQ2EH3H6JMQHxNt2K7pGcgxQRoMpYuuuXyPnIGaMKNS7jwZRqBJhfSRYXc2myu+iKFbwhiCL3+w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.23.0/axios.js" integrity="sha512-nZmAl1ClAQ0kQ2EH3H6JMQHxNt2K7pGcgxQRoMpYuuuXyPnIGaMKNS7jwZRqBJhfSRYXc2myu+iKFbwhiCL3+w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+<script>
+function  PostTheData(){
+  url = document.getElementById('theUrl').value;
+  axios.post('http://127.0.0.1:8888', {
+    uri: url,
+  })
+  .then((response) => handleRes(response.data))
+  // .catch(function (error) {
+  //   console.log(error);
+  // });
+}
+
+// For Testing Data
+  // axios({
+  //   url : 'response.json',
+  //   method : 'GET',
+  // })
+  // .then((request) => handleRes(request.data))
+
+
+var root = document.getElementById('root')
+Title = document.getElementById("title")
+comp_video = document.getElementById("comp-video")
+video_only = document.getElementById("video-only")
+audio_only = document.getElementById("audio-only")
+req = document.getElementById("requested-link")
+
+const handleRes = (data) =>{
+
+    console.log(data)
+
+    const YOUTUBE = Boolean(data.extractor == "youtube")
+    const FACEBOOK = Boolean(data.extractor == "facebook")
+    const INSTAGRAM = Boolean(data.extractor == "Instagram")
+
+    if(YOUTUBE){ // This was for Youtube (It has 4 thumbnails)
+    document.getElementById("thumb").setAttribute("src",data.thumbnails[1].url) // Enough For Mobiles size => (168x94)
+    }
+    else if(FACEBOOK){ // This was for Facebook (It has 1 thumbnail)
+    document.getElementById("thumb").setAttribute("src",data.thumbnails[0].url) // Enough For Mobiles size => (168x94)
+    }
+    else if(INSTAGRAM){
+      // document.getElementById("thumb").setAttribute("src",data.thumbnails[0].url)
+      
+      // Apparently Instagram Blocks Media Requests From Other Browsers Which is fyn we can't do anything about it
+      // But i have this feeling that it would still worrk on mobiles
+      // Instagram has only one stream for a reel & and has no requested formats
+    }
+    Title.innerText = data.title
+    if(INSTAGRAM){Title.innerText = data.description}
+    document.getElementById("duration").innerHTML=data.duration + " s"
+
+   // Video link sent by YT considering user's network speed
+   if (!INSTAGRAM) {
+    for (let i = 0; i < Object.keys(data.requested_formats).length; i++){
+      var li = document.createElement("li");
+      li.setAttribute("class","list-group-item d-flex justify-content-between align-items-center")
+      li.innerHTML = `
+      
+      <a class="my-1 px-2 py-2" href="${data.requested_formats[i].url}" target="_blank">${data.requested_formats[i].format_note}  ${data.requested_formats[i].format} </a>
+      <span class="badge bg-primary rounded-pill">${data.requested_formats[i].ext}</span>
+      `
+      req.appendChild(li);
+    }
+   }
+    // Video With Audio
+    for (let i = 0; i < Object.keys(data.formats).length; i++) {
+      if (data.formats[i].asr && data.formats[i].fps) {
+          var li = document.createElement("li");
+          li.setAttribute("class","list-group-item d-flex justify-content-between align-items-center")
+          li.innerHTML = `
+          <a class="my-1 px-2 py-2" href="${data.formats[i].url}"  target="_blank">${data.formats[i].format_note}  <!--${data.formats[i].format}--> </a>
+          <span class="badge bg-primary rounded-pill">${data.formats[i].format_note}</span>
+          <span class="badge bg-success rounded-pill">${data.formats[i].ext}</span>
+          `
+          comp_video.appendChild(li);
+      }
+    }
+    // Video Only
+    for (let i = 0; i < Object.keys(data.formats).length; i++) {
+      if (!data.formats[i].asr) {
+          var li = document.createElement("li");
+          li.setAttribute("class","list-group-item d-flex justify-content-between align-items-center")
+        // String Manipulation to show the correct resolution or format
+          strFormat = data.formats[i].format
+          x = strFormat.search("-")
+          realFormat = strFormat.slice(x+2,strFormat.length)
+
+          li.innerHTML = `
+          <a class="my-1 px-2 py-2" href="${data.formats[i].url}"  target="_blank">
+            ${realFormat}
+          </a>
+          <span class="badge bg-primary rounded-pill">${data.formats[i].format_note}</span>
+          <span class="badge bg-success rounded-pill">${data.formats[i].ext}</span>
+          `
+          video_only.appendChild(li);
+      }
+    }
+    // Audio Only
+    for (let i = 0; i < Object.keys(data.formats).length; i++) {
+      if (!data.formats[i].height) {
+          var li = document.createElement("li");
+          li.setAttribute("class","list-group-item d-flex justify-content-between align-items-center")
+          li.innerHTML = `
+          <a class="my-1 px-2 py-2" href="${data.formats[i].url}" target="_blank">${data.formats[i].format_note}  <!--${data.formats[i].format}--> </a>
+          <span class="badge bg-primary rounded-pill">${data.formats[i].format_note}</span>
+          <span class="badge bg-success rounded-pill">${data.formats[i].ext}</span>
+          `
+          audio_only.appendChild(li);
+      }
+    }
+
+}
+
+</script>
+</html>
