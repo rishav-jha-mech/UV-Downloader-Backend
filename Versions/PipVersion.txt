@@ -1,0 +1,1 @@
+pip 21.2.4 from C:\Users\Rishav\Desktop\UV Downloader\env\lib\site-packages\pip (python 3.9)
